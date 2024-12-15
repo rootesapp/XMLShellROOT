@@ -51,25 +51,20 @@ class MainActivity : AppCompatActivity() {
     private var fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface? = null
 
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
-override fun onCreate(savedInstanceState: Bundle?) {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-    setContentView(R.layout.activity_main)  // 确保布局文件加载在Fragment替换之前
+        setContentView(R.layout.activity_main)  // 确保布局文件加载在Fragment替换之前
         Update().checkUpdate(this)
 
         // Network status check
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        if (connectivityManager?.activeNetworkInfo != null) {
-            if (connectivityManager.activeNetworkInfo.isConnected) {
-                Toast.makeText(this, "欢迎(无话可说)", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "无网络连接，自己写吧", Toast.LENGTH_SHORT).show()
-            }
+        if (connectivityManager?.activeNetworkInfo?.isConnected == true) {
+            Toast.makeText(this, "欢迎(无话可说)", Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this, "无法获取网络信息，自己写吧", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "无网络连接，自己写吧", Toast.LENGTH_SHORT).show()
         }
-
-        super.onCreate(savedInstanceState)
 
         krScriptConfig = KrScriptConfig()
 
@@ -83,12 +78,14 @@ override fun onCreate(savedInstanceState: Bundle?) {
             }
         }).start()
 
+        // 只进行一次 Fragment 替换操作
         val home = FragmentHome()
         val fragmentManager = supportFragmentManager
         val transaction = fragmentManager.beginTransaction()
         transaction.replace(R.id.main_tabhost_cpu, home)
         transaction.commitAllowingStateLoss()
 
+        // 检查权限并请求
         if (!(checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE) && checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE))) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 111)
         }
@@ -101,8 +98,8 @@ override fun onCreate(savedInstanceState: Bundle?) {
             return false
         } else {
             val suffix = fileSelectedInterface.suffix()
-            if (suffix != null && suffix.isNotEmpty()) {
-                // Use file extension
+            if (!suffix.isNullOrEmpty()) {
+                // 使用文件扩展名
                 chooseFilePath(suffix)
             } else {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -128,30 +125,24 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
     // Handle activity result for file chooser
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
         if (requestCode == ACTION_FILE_PATH_CHOOSER) {
             val result = if (data == null || resultCode != Activity.RESULT_OK) null else data.data
-            if (fileSelectedInterface != null) {
-                if (result != null) {
-                    val absPath = getPath(result)
-                    fileSelectedInterface?.onFileSelected(absPath)
-                } else {
-                    fileSelectedInterface?.onFileSelected(null)
-                }
-            }
-            this.fileSelectedInterface = null
+            fileSelectedInterface?.onFileSelected(result?.let { getPath(it) })
+            fileSelectedInterface = null
         } else if (requestCode == ACTION_FILE_PATH_CHOOSER_INNER) {
-            val absPath = if (data == null || resultCode != Activity.RESULT_OK) null else data.getStringExtra("file")
+            val absPath = data?.getStringExtra("file")
             fileSelectedInterface?.onFileSelected(absPath)
-            this.fileSelectedInterface = null
+            fileSelectedInterface = null
         }
-        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun getPath(uri: Uri): String? {
-        try {
-            return FilePathResolver().getPath(this, uri)
+        return try {
+            FilePathResolver().getPath(this, uri)
         } catch (ex: Exception) {
-            return null
+            null
         }
     }
 
@@ -169,21 +160,17 @@ override fun onCreate(savedInstanceState: Bundle?) {
     // Permissions handling
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 2) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                chooseFilePath(fileSelectedInterface!!)
-            } else {
-                Toast.makeText(this, "权限被拒绝，无法选择文件", Toast.LENGTH_SHORT).show()
-            }
+        if (requestCode == 2 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            fileSelectedInterface?.let { chooseFilePath(it) }
+        } else {
+            Toast.makeText(this, "权限被拒绝，无法选择文件", Toast.LENGTH_SHORT).show()
         }
     }
 
     // Menu creation and item selection
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
-
-        menu.findItem(R.id.action_graph).isVisible = (main_tabhost_cpu.visibility == View.VISIBLE)
-
+        menu.findItem(R.id.action_graph).isVisible = main_tabhost_cpu.visibility == View.VISIBLE
         return true
     }
 

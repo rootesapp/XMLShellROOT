@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="warning">#FFB300</color>
+
+    <!-- 按钮颜色 -->
+    <color name="button_pressed">#03DAC5</color> 
+    <color name="button_normal">#6200EE</color>
+
+    <!-- 背景颜色 -->
+    <color name="white">#FAFAFA</color>
+
+    <!-- 对话框背景 -->
+    <color name="dialog_background_dim">#66000000</color> 
+
+    <!-- 文本颜色 -->
+    <color name="text_primary">#121212</color> 
+    <color name="text_secondary">#616161</color> 
+    <color name="text_accent">#03DAC5</color>
+
+    <!-- 状态栏颜色 -->
+    <color name="status_bar">#6200EE</color> 
+
+    <!-- 输入框颜色 -->
+    <color name="input_border">#E0E0E0</color> 
+    <color name="input_text">#212121</color> 
+    <color name="input_hint">#757575</color>
+
 </resources>

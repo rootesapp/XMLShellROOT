@@ -24,9 +24,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
-import com.microsoft.appcenter.AppCenter
-import com.microsoft.appcenter.analytics.Analytics
-import com.microsoft.appcenter.crashes.Crashes
 import com.omarea.common.shared.FilePathResolver
 import com.omarea.common.ui.ProgressBarDialog
 import com.omarea.krscript.config.PageConfigReader
@@ -51,10 +48,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var globalSPF: SharedPreferences
     private var krScriptConfig = KrScriptConfig()
 
+    private var fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface? = null
+
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Update().checkUpdate(this)
+
+        // Network status check
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         if (connectivityManager?.activeNetworkInfo != null) {
             if (connectivityManager.activeNetworkInfo.isConnected) {
@@ -94,39 +95,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateFavoritesTab(items: List<NodeInfoBase>) {
-        val favoritesFragment = ActionListFragment.create(items, getKrScriptActionHandler(), null, ThemeModeState.getThemeMode())
-        supportFragmentManager.beginTransaction().replace(R.id.list_favorites, favoritesFragment).commitAllowingStateLoss()
-    }
-
-    private fun updateMoreTab(items: List<NodeInfoBase>) {
-        val allItemFragment = ActionListFragment.create(items, getKrScriptActionHandler(), null, ThemeModeState.getThemeMode())
-        supportFragmentManager.beginTransaction().replace(R.id.list_pages, allItemFragment).commitAllowingStateLoss()
-    }
-
-    private fun getKrScriptActionHandler(): KrScriptActionHandler {
-        return object : KrScriptActionHandler {
-            override fun onActionCompleted(runnableNode: RunnableNode) {
-                if (runnableNode.autoFinish) {
-                    finishAndRemoveTask()
-                }
+    private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, getString(R.string.kr_write_external_storage), Toast.LENGTH_LONG).show()
+            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 2)
+            return false
+        } else {
+            val suffix = fileSelectedInterface.suffix()
+            if (suffix != null && suffix.isNotEmpty()) {
+                // Use file extension
+                chooseFilePath(suffix)
+            } else {
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                val mimeType = fileSelectedInterface.mimeType()
+                intent.type = mimeType ?: "*/*"
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER)
             }
-
-            override fun addToFavorites(clickableNode: ClickableNode, addToFavoritesHandler: KrScriptActionHandler.AddToFavoritesHandler) {
-                val intent = Intent()
-                intent.component = ComponentName(this@MainActivity.applicationContext, ActionPage::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
-                addToFavoritesHandler.onAddToFavorites(clickableNode, intent)
-            }
-
-            override fun onSubPageClick(pageNode: PageNode) {
-                _openPage(pageNode)
-            }
-
-            override fun openFileChooser(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
-                return chooseFilePath(fileSelectedInterface)
-            }
+            this.fileSelectedInterface = fileSelectedInterface
+            return true
         }
     }
 
@@ -140,40 +127,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
-        chooseFilePath("")
-        return true
-    }
-
-    private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, getString(R.string.kr_write_external_storage), Toast.LENGTH_LONG).show()
-            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 2)
-            return false
-        } else {
-            return try {
-                val suffix = fileSelectedInterface.suffix()
-                if (suffix != null && suffix.isNotEmpty()) {
-                    chooseFilePath(suffix)
-                } else {
-                    val intent = Intent(Intent.ACTION_GET_CONTENT)
-                    val mimeType = fileSelectedInterface.mimeType()
-                    if (mimeType != null) {
-                        intent.type = mimeType
-                    } else {
-                        intent.type = "*/*"
-                    }
-                    intent.addCategory(Intent.CATEGORY_OPENABLE)
-                    startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER)
-                }
-                this.fileSelectedInterface = fileSelectedInterface
-                true
-            } catch (ex: java.lang.Exception) {
-                false
-            }
-        }
-    }
-
+    // Handle activity result for file chooser
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == ACTION_FILE_PATH_CHOOSER) {
             val result = if (data == null || resultCode != Activity.RESULT_OK) null else data.data
@@ -202,6 +156,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Handle page opening
     fun _openPage(pageNode: PageNode) {
         OpenPageHelper(this).openPage(pageNode)
     }
@@ -212,20 +167,31 @@ class MainActivity : AppCompatActivity() {
         return dm.densityDpi
     }
 
+    // Permissions handling
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 2) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                chooseFilePath(fileSelectedInterface!!)
+            } else {
+                Toast.makeText(this, "权限被拒绝，无法选择文件", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // Menu creation and item selection
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
-
         menu.findItem(R.id.action_graph).isVisible = (main_tabhost_cpu.visibility == View.VISIBLE)
-
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-            when (item.itemId) {
+        when (item.itemId) {
             R.id.option_menu_info -> {
                 val intent = Intent()
-                intent.setClass(this,AboutActivity::class.java)
-                startActivity(intent)            
+                intent.setClass(this, AboutActivity::class.java)
+                startActivity(intent)
             }
             R.id.option_menu_reboot -> {
                 DialogPower(this).showPowerMenu()
@@ -240,20 +206,8 @@ class MainActivity : AppCompatActivity() {
                         FloatMonitor(this).showPopupWindow()
                         Toast.makeText(this, getString(R.string.float_monitor_tips), Toast.LENGTH_LONG).show()
                     } else {
-                        //若没有权限，提示获取
-                        //val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                        //startActivity(intent);
-                        val intent = Intent()
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        intent.action = "android.settings.APPLICATION_DETAILS_SETTINGS"
-                        intent.data = Uri.fromParts("package", this.packageName, null)
-
-                        Toast.makeText(applicationContext, getString(R.string.permission_float), Toast.LENGTH_LONG).show()
-
-                        try {
-                            startActivity(intent)
-                        } catch (ex: Exception) {
-                        }
+                        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                        startActivity(intent)
                     }
                 } else {
                     FloatMonitor(this).showPopupWindow()
@@ -263,4 +217,8 @@ class MainActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+
+    // Constants for request codes
+    private val ACTION_FILE_PATH_CHOOSER = 1234
+    private val ACTION_FILE_PATH_CHOOSER_INNER = 1235
 }

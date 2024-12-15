@@ -1,52 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.omarea.common.ui.OverScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-                                     android:layout_width="match_parent"
-                                     android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dialog_background_dim">
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:gravity="center">
+
+        <!-- 对话框主体 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="150dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/dialog_bg_hyperos"
+            android:elevation="4dp"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="20dp">
 
-        <LinearLayout
-                android:alpha="0.8"
+            <TextView
+                android:id="@+id/confirm_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="150dp"
-                android:layout_marginTop="6dp"
-                android:paddingBottom="16dp"
-                android:background="@drawable/confirm_dialog_bg"
-                android:orientation="vertical">
+                android:text="提示信息"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                android:textColor="@color/text_primary"
+                android:paddingBottom="8dp" />
 
             <TextView
-                    android:id="@+id/confirm_title"
-                    android:breakStrategy="simple"
-                    style="@style/dialogTitle"
-                    android:text="提示信息" />
-            <TextView
-                    android:id="@+id/confirm_message"
-                    android:breakStrategy="simple"
-                    style="@style/dialogDesc"
-                    android:text="提示内容" />
+                android:id="@+id/confirm_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="提示内容"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingExtra="4dp" />
 
             <FrameLayout
-                    android:id="@+id/confirm_custom_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                android:id="@+id/confirm_custom_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
+        <!-- 按钮区域 -->
         <LinearLayout
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="end">
 
             <Button
-                    android:id="@+id/btn_confirm"
-                    style="@style/dialogCancelBtn"
-                    android:text="我知道了">
-            </Button>
+                android:id="@+id/btn_confirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="我知道了"
+                android:background="@drawable/button_bg_hyperos"
+                android:textColor="@color/white"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginEnd="8dp" />
         </LinearLayout>
 
     </LinearLayout>

@@ -78,9 +78,6 @@ class MainActivity : AppCompatActivity() {
 
             handler.post {
                 progressBarDialog.hideDialog()
-                // Directly handle UI updates without using the XML configurations
-                updateFavoritesTab(emptyList())
-                updateMoreTab(emptyList())
             }
         }).start()
 

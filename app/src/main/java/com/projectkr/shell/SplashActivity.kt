@@ -124,14 +124,8 @@ class SplashActivity : Activity() {
     private fun startToFinish() {
         start_state_text.text = getString(R.string.pop_started)
 
-        val config = KrScriptConfig().init(this)
-        if (config.beforeStartSh.isNotEmpty()) {
-            BeforeStartThread(this, config, UpdateLogViewHandler(start_state_text, Runnable {
-                gotoHome()
-            })).start()
-        } else {
             gotoHome()
-        }
+    
     }
 
     private fun gotoHome() {
@@ -169,30 +163,6 @@ class SplashActivity : Activity() {
         }
     }
 
-    private class BeforeStartThread(private var context: Context, private val config: KrScriptConfig, private var updateLogViewHandler: UpdateLogViewHandler) : Thread() {
-        val params = config.getVariables();
-
-        override fun run() {
-            try {
-                val process = ShellExecutor.getRuntime()
-                if (process != null) {
-                    val outputStream = process.outputStream.bufferedWriter()
-
-                    ScriptEnvironmen.executeShell(context, outputStream, config.beforeStartSh, params, null, "pio-splash")
-
-                    StreamReadThread(process.inputStream.bufferedReader(), updateLogViewHandler).start()
-                    StreamReadThread(process.errorStream.bufferedReader(), updateLogViewHandler).start()
-
-                    process.waitFor()
-                    updateLogViewHandler.onExit()
-                } else {
-                    updateLogViewHandler.onExit()
-                }
-            } catch (ex: Exception) {
-                updateLogViewHandler.onExit()
-            }
-        }
-    }
 
     private class StreamReadThread(private var reader: BufferedReader, private var updateLogViewHandler: UpdateLogViewHandler) : Thread() {
         override fun run() {

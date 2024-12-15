@@ -29,8 +29,6 @@ import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
 import com.omarea.common.shared.FilePathResolver
 import com.omarea.common.ui.ProgressBarDialog
-import com.omarea.krscript.config.PageConfigReader
-import com.omarea.krscript.config.PageConfigSh
 import com.projectkr.shell.FloatMonitor
 import com.omarea.krscript.model.*
 import com.omarea.krscript.ui.ActionListFragment
@@ -143,23 +141,17 @@ class MainActivity : AppCompatActivity() {
     private fun getItems(pageNode: PageNode): ArrayList<NodeInfoBase>? {
         var items: ArrayList<NodeInfoBase>? = null
 
-        if (pageNode.pageConfigSh.isNotEmpty()) {
-            items = PageConfigSh(this, pageNode.pageConfigSh, null).execute()
-        }
-        if (items == null && pageNode.pageConfigPath.isNotEmpty()) {
-            items = PageConfigReader(this.applicationContext, pageNode.pageConfigPath, null).readConfigXml()
-        }
 
         return items
     }
 
-    private fun updateFavoritesTab(items: ArrayList<NodeInfoBase>, pageNode: PageNode) {
-        val favoritesFragment = ActionListFragment.create(items, getKrScriptActionHandler(pageNode, true), null, ThemeModeState.getThemeMode())
+    private fun updateFavoritesTab(items: List<NodeInfoBase>) {
+        val favoritesFragment = ActionListFragment.create(items, getKrScriptActionHandler(), null, ThemeModeState.getThemeMode())
         supportFragmentManager.beginTransaction().replace(R.id.list_favorites, favoritesFragment).commitAllowingStateLoss()
     }
 
-    private fun updateMoreTab(items: ArrayList<NodeInfoBase>, pageNode: PageNode) {
-        val allItemFragment = ActionListFragment.create(items, getKrScriptActionHandler(pageNode, false), null, ThemeModeState.getThemeMode())
+    private fun updateMoreTab(items: List<NodeInfoBase>) {
+        val allItemFragment = ActionListFragment.create(items, getKrScriptActionHandler(), null, ThemeModeState.getThemeMode())
         supportFragmentManager.beginTransaction().replace(R.id.list_pages, allItemFragment).commitAllowingStateLoss()
     }
 

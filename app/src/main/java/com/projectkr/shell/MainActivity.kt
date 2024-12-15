@@ -53,25 +53,22 @@ class MainActivity : AppCompatActivity() {
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
 
         override fun onCreate(savedInstanceState: Bundle?) {
-
-        //val signCode = String(Base64.decode("你的签名的base64，把SHA1转base64", Base64.DEFAULT))
-        //val signCheck = SignCheck(this, signCode)
         Update().checkUpdate(this)
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-    if (connectivityManager?.activeNetworkInfo != null) {
-        if (connectivityManager.activeNetworkInfo.isConnected) {
-            Toast.makeText(this, "欢迎(无话可说)", Toast.LENGTH_SHORT).show()
+        if (connectivityManager?.activeNetworkInfo != null) {
+            if (connectivityManager.activeNetworkInfo.isConnected) {
+                Toast.makeText(this, "欢迎(无话可说)", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "无网络连接，自己写吧", Toast.LENGTH_SHORT).show()
+            }
         } else {
-            Toast.makeText(this, "无网络连接，自己写吧", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "无法获取网络信息，自己写吧", Toast.LENGTH_SHORT).show()
         }
-    } else {
-        Toast.makeText(this, "无法获取网络信息，自己写吧", Toast.LENGTH_SHORT).show()
-    }
-    
+
         super.onCreate(savedInstanceState)
         ThemeModeState.switchTheme(this)
         setContentView(R.layout.activity_main)
-        
+
         val dialog = PrivacyPolicyDialog(this, getString(R.string.termsOfServiceUrl), getString(R.string.privacyPolicyUrl))
         dialog.onClickListener = object : PrivacyPolicyDialog.OnClickListener {
             override fun onAccept(isFirstTime: Boolean) {
@@ -81,8 +78,8 @@ class MainActivity : AppCompatActivity() {
             override fun onCancel() {
                 Log.e("MainActivity", "Policies not accepted")
                 finish()
-                 }
-             }
+            }
+        }
         dialog.title = getString(R.string.termsOfServiceTitle)
         dialog.termsOfServiceSubtitle = getString(R.string.termsOfServiceSubtitle)
         dialog.addPoliceLine(getString(R.string.PoliceLine1))
@@ -92,22 +89,16 @@ class MainActivity : AppCompatActivity() {
         dialog.acceptButtonColor = ContextCompat.getColor(this, R.color.colorAccent)
         dialog.europeOnly = false
         dialog.show()
-        
-        //supportActionBar!!.elevation = 0f
+
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
         setTitle(R.string.app_name)
 
         krScriptConfig = KrScriptConfig()
 
-
         main_tabhost.setup()
         val tabIconHelper = TabIconHelper(main_tabhost, this)
-        if (CheckRootStatus.lastCheckResult && krScriptConfig.allowHomePage) {
-            tabIconHelper.newTabSpec(getString(R.string.tab_home), getDrawable(R.drawable.tab_home)!!, R.id.main_tabhost_cpu)
-        } else {
-            main_tabhost_cpu.visibility = View.GONE
-        }
+
         main_tabhost.setOnTabChangedListener {
             tabIconHelper.updateHighlight()
         }
@@ -138,15 +129,11 @@ class MainActivity : AppCompatActivity() {
             }
         }).start()
 
-
-        if (CheckRootStatus.lastCheckResult && krScriptConfig.allowHomePage) {
-            val home = FragmentHome()
-            val fragmentManager = supportFragmentManager
-            val transaction = fragmentManager.beginTransaction()
-            transaction.replace(R.id.main_tabhost_cpu, home)
-            transaction.commitAllowingStateLoss()
-        }
-
+        val home = FragmentHome()
+        val fragmentManager = supportFragmentManager
+        val transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.main_tabhost_cpu, home)
+        transaction.commitAllowingStateLoss()
 
         if (!(checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE) && checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE))) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 111)
@@ -204,10 +191,9 @@ class MainActivity : AppCompatActivity() {
     private fun getKrScriptActionHandler(pageNode: PageNode, isFavoritesTab: Boolean): KrScriptActionHandler {
         return object : KrScriptActionHandler {
             override fun onActionCompleted(runnableNode: RunnableNode) {
-                if (runnableNode.autoFinish ) {
+                if (runnableNode.autoFinish) {
                     finishAndRemoveTask()
                 } else if (runnableNode.reloadPage) {
-                    // TODO:多线程优化
                     if (isFavoritesTab) {
                         reloadFavoritesTab()
                     } else {
@@ -216,7 +202,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-      
             override fun addToFavorites(clickableNode: ClickableNode, addToFavoritesHandler: KrScriptActionHandler.AddToFavoritesHandler) {
                 val page = if (clickableNode is PageNode) {
                     clickableNode
@@ -263,6 +248,13 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "启动内置文件选择器失败！", Toast.LENGTH_SHORT).show()
         }
     }
+
+    private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
+        this.fileSelectedInterface = fileSelectedInterface
+        chooseFilePath("")
+        return true
+    }
+}
 
     private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/home_mainview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="fill_vertical"
+        android:layout_weight="1"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/pay_fuck"
+            style="@style/ListCardItemClickable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true">
+
+            <TextView
+                android:id="@+id/versionTextView5"
+                android:layout_width="332dp"
+                android:layout_height="52dp"
+                android:clickable="false"
+                android:text="仅从官方 GitHub 页面下载 玩机百宝箱。未知来源的文件可能具有恶意行为！\n玩机百宝箱 将保持永久免费，向开发者捐赠以表示支持！"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/pay_web"
+            style="@style/ListCardItemClickable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="公告"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pay_about"
+            style="@style/ListCardItemClickable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="搜索本页功能"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pay_otg"
+            style="@style/ListCardItemClickable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OTG功能区"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pay_root"
+            style="@style/ListCardItemClickable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Root功能"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pay_magisk"
+            style="@style/ListCardItemClickable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Magisk功能"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pay_app"
+            style="@style/ListCardItemClickable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="软件功能"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pay_system"
+            style="@style/ListCardItemClickable"
+            android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView122"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="系统功能"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pay_rootes"
+            style="@style/ListCardItemClickable"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="其他功能"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+                android:id="@+id/pay_xx"
+                style="@style/ListCardItemClickable"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="false">
+
+            <TextView
+                android:id="@+id/versionTextView7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="赞助我们"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

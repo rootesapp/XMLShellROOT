@@ -17,6 +17,9 @@ import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_splash.*
 import android.content.pm.PackageManager
 
+import com.omarea.krscript.executor.ScriptEnvironmen
+import java.io.BufferedReader
+
 class SplashActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

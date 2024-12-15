@@ -14,41 +14,12 @@ import androidx.core.content.PermissionChecker
 import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
-import com.omarea.common.shell.ShellExecutor
-import com.omarea.krscript.executor.ScriptEnvironmen
-import com.projectkr.shell.permissions.CheckRootStatus
 import kotlinx.android.synthetic.main.activity_splash.*
-import java.io.BufferedReader
-import java.io.DataOutputStream
 import android.content.pm.PackageManager
 
 class SplashActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (ScriptEnvironmen.isInited()) {
-            if (isTaskRoot) {
-                gotoHome()
-            }
-            return
-        }
-
-
-        //因为，所以，还是所以，有些小白不会写也不会编译，可以在软件中加入，把//去了就可以用了，把SHA1转换base64 网站把网址转base64
-     //   if (!BuildConfig.DEBUG) {
-      //      val signCode = String(Base64.decode("你的签名", Base64.DEFAULT))
-       //     val signCheck = SignCheck(this, signCode)
-        //    val webCode = String(Base64.decode("跳转网站base64", Base64.DEFAULT))
-         //   if (!signCheck.check()) {
-          //      Log.e("SplashActivity", "SignCheck failed")
-           //     Toast.makeText(this, "此应用是盗版，已自动阻止启动", Toast.LENGTH_LONG).show()
-            //    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(webCode))
-             //   startActivity(intent)
-              //  finish()
-               // return
-    //        }
-     //   }
-
 
         setContentView(R.layout.activity_splash)
         updateThemeStyle()
@@ -89,10 +60,9 @@ class SplashActivity : Activity() {
      */
     private fun checkPermissions() {
         start_logo.visibility = View.VISIBLE
-       start_state_text.text = getString(R.string.pio_permission_checking)
+        start_state_text.text = getString(R.string.pio_permission_checking)
             
-            startToFinish()
-        
+        startToFinish()
     }
 
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this.applicationContext, permission) == PermissionChecker.PERMISSION_GRANTED
@@ -101,61 +71,48 @@ class SplashActivity : Activity() {
      * 检查权限 主要是文件读写权限
      */
     private fun checkFileWrite(next: Runnable) {
-    Thread(Runnable {
-        CheckRootStatus.grantPermission(this)
-        if (!(checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE) && checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE))) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ActivityCompat.requestPermissions(
+        Thread(Runnable {
+            if (!(checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE) && checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE))) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    ActivityCompat.requestPermissions(
                         this@SplashActivity,
                         arrayOf(
-                                Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS,
-                                Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                Manifest.permission.WAKE_LOCK
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
                         ),
                         0x11
-                )
-            } else {
-                ActivityCompat.requestPermissions(
+                    )
+                } else {
+                    ActivityCompat.requestPermissions(
                         this@SplashActivity,
                         arrayOf(
-                                Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS,
-                                Manifest.permission.WAKE_LOCK
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
                         ),
                         0x11
-                )
-            }
-        } else {
-            myHandler.post {
-                next.run()
-            }
-        }
-    }).start()
-}
-
-override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-    when (requestCode) {
-        0x11 -> {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                // All permissions granted, proceed with the next action
-                // 例如：myHandler.post { next.run() }
+                    )
+                }
             } else {
-                // Permissions not granted, handle accordingly (e.g., show a message, disable functionality)
+                myHandler.post {
+                    next.run()
+                }
             }
-        }
-        // Handle other request codes if needed
+        }).start()
     }
-}
 
-    private var hasRoot = false
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when (requestCode) {
+            0x11 -> {
+                if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                    // All permissions granted, proceed with the next action
+                } else {
+                    // Permissions not granted, handle accordingly (e.g., show a message, disable functionality)
+                }
+            }
+        }
+    }
+
     private var myHandler = Handler()
-
-    private fun checkRoot(next: Runnable) {
-        CheckRootStatus(this, next).forceGetRoot()
-    }
 
     /**
      * 启动完成
@@ -213,9 +170,9 @@ override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out
 
         override fun run() {
             try {
-                val process = if (CheckRootStatus.lastCheckResult) ShellExecutor.getSuperUserRuntime() else ShellExecutor.getRuntime()
+                val process = ShellExecutor.getRuntime()
                 if (process != null) {
-                    val outputStream = DataOutputStream(process.outputStream)
+                    val outputStream = process.outputStream.bufferedWriter()
 
                     ScriptEnvironmen.executeShell(context, outputStream, config.beforeStartSh, params, null, "pio-splash")
 

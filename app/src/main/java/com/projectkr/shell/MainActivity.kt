@@ -29,6 +29,8 @@ import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
 import com.omarea.common.shared.FilePathResolver
 import com.omarea.common.ui.ProgressBarDialog
+import com.omarea.krscript.config.PageConfigReader
+import com.omarea.krscript.config.PageConfigSh
 import com.projectkr.shell.FloatMonitor
 import com.omarea.krscript.model.*
 import com.omarea.krscript.ui.ActionListFragment
@@ -48,9 +50,10 @@ class MainActivity : AppCompatActivity() {
     private var handler = Handler()
     private lateinit var globalSPF: SharedPreferences
     private var krScriptConfig = KrScriptConfig()
+
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
 
-        override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         Update().checkUpdate(this)
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         if (connectivityManager?.activeNetworkInfo != null) {
@@ -64,66 +67,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         super.onCreate(savedInstanceState)
-        ThemeModeState.switchTheme(this)
-        setContentView(R.layout.activity_main)
-
-        val dialog = PrivacyPolicyDialog(this, getString(R.string.termsOfServiceUrl), getString(R.string.privacyPolicyUrl))
-        dialog.onClickListener = object : PrivacyPolicyDialog.OnClickListener {
-            override fun onAccept(isFirstTime: Boolean) {
-                Log.e("MainActivity", "Policies accepted")
-            }
-
-            override fun onCancel() {
-                Log.e("MainActivity", "Policies not accepted")
-                finish()
-            }
-        }
-        dialog.title = getString(R.string.termsOfServiceTitle)
-        dialog.termsOfServiceSubtitle = getString(R.string.termsOfServiceSubtitle)
-        dialog.addPoliceLine(getString(R.string.PoliceLine1))
-        dialog.addPoliceLine(getString(R.string.PoliceLine2))
-        dialog.cancelText = getString(R.string.dialog_cancelText)
-        dialog.acceptText = getString(R.string.dialog_acceptText)
-        dialog.acceptButtonColor = ContextCompat.getColor(this, R.color.colorAccent)
-        dialog.europeOnly = false
-        dialog.show()
-
-        val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
-        setSupportActionBar(toolbar)
-        setTitle(R.string.app_name)
 
         krScriptConfig = KrScriptConfig()
 
-        main_tabhost.setup()
-        val tabIconHelper = TabIconHelper(main_tabhost, this)
-
-        main_tabhost.setOnTabChangedListener {
-            tabIconHelper.updateHighlight()
-        }
-
         progressBarDialog.showDialog(getString(R.string.please_wait))
-        Thread(Runnable {
-            val page2Config = krScriptConfig.pageListConfig
-            val favoritesConfig = krScriptConfig.favoriteConfig
 
-            val pages = getItems(page2Config)
-            val favorites = getItems(favoritesConfig)
+        Thread(Runnable {
+            // Removed XML file reading and config parsing
+
             handler.post {
                 progressBarDialog.hideDialog()
-
-                if (favorites != null && favorites.size > 0) {
-                    updateFavoritesTab(favorites, favoritesConfig)
-                    tabIconHelper.newTabSpec(getString(R.string.tab_favorites), ContextCompat.getDrawable(this, R.drawable.tab_favorites)!!, R.id.main_tabhost_2)
-                } else {
-                    main_tabhost_2.visibility = View.GONE
-                }
-
-                if (pages != null && pages.size > 0) {
-                    updateMoreTab(pages, page2Config)
-                    tabIconHelper.newTabSpec(getString(R.string.tab_pages), ContextCompat.getDrawable(this, R.drawable.tab_pages)!!, R.id.main_tabhost_3)
-                } else {
-                    main_tabhost_3.visibility = View.GONE
-                }
+                // Directly handle UI updates without using the XML configurations
+                updateFavoritesTab(emptyList())
+                updateMoreTab(emptyList())
             }
         }).start()
 
@@ -138,13 +94,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getItems(pageNode: PageNode): ArrayList<NodeInfoBase>? {
-        var items: ArrayList<NodeInfoBase>? = null
-
-
-        return items
-    }
-
     private fun updateFavoritesTab(items: List<NodeInfoBase>) {
         val favoritesFragment = ActionListFragment.create(items, getKrScriptActionHandler(), null, ThemeModeState.getThemeMode())
         supportFragmentManager.beginTransaction().replace(R.id.list_favorites, favoritesFragment).commitAllowingStateLoss()
@@ -155,65 +104,19 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction().replace(R.id.list_pages, allItemFragment).commitAllowingStateLoss()
     }
 
-    private fun reloadFavoritesTab() {
-        Thread(Runnable {
-            val favoritesConfig = krScriptConfig.favoriteConfig
-            val favorites = getItems(favoritesConfig)
-            favorites?.run {
-                handler.post {
-                    updateFavoritesTab(this, favoritesConfig)
-                }
-            }
-        }).start()
-    }
-
-    private fun reloadMoreTab() {
-        Thread(Runnable {
-            val page2Config = krScriptConfig.pageListConfig
-            val pages = getItems(page2Config)
-
-            pages?.run {
-                handler.post {
-                    updateMoreTab(this, page2Config)
-                }
-            }
-        }).start()
-    }
-
-    private fun getKrScriptActionHandler(pageNode: PageNode, isFavoritesTab: Boolean): KrScriptActionHandler {
+    private fun getKrScriptActionHandler(): KrScriptActionHandler {
         return object : KrScriptActionHandler {
             override fun onActionCompleted(runnableNode: RunnableNode) {
                 if (runnableNode.autoFinish) {
                     finishAndRemoveTask()
-                } else if (runnableNode.reloadPage) {
-                    if (isFavoritesTab) {
-                        reloadFavoritesTab()
-                    } else {
-                        reloadMoreTab()
-                    }
                 }
             }
 
             override fun addToFavorites(clickableNode: ClickableNode, addToFavoritesHandler: KrScriptActionHandler.AddToFavoritesHandler) {
-                val page = if (clickableNode is PageNode) {
-                    clickableNode
-                } else if (clickableNode is RunnableNode) {
-                    pageNode
-                } else {
-                    return
-                }
-
                 val intent = Intent()
-
                 intent.component = ComponentName(this@MainActivity.applicationContext, ActionPage::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
-
-                if (clickableNode is RunnableNode) {
-                    intent.putExtra("autoRunItemId", clickableNode.key)
-                }
-                intent.putExtra("page", page)
-
                 addToFavoritesHandler.onAddToFavorites(clickableNode, intent)
             }
 
@@ -227,26 +130,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private var fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface? = null
-    private val ACTION_FILE_PATH_CHOOSER = 65400
-    private val ACTION_FILE_PATH_CHOOSER_INNER = 65300
-
     private fun chooseFilePath(extension: String) {
         try {
             val intent = Intent(this, ActivityFileSelector::class.java)
             intent.putExtra("extension", extension)
-            startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER_INNER)
-        } catch (ex: java.lang.Exception) {
+            startActivityForResult(intent, 65400)
+        } catch (ex: Exception) {
             Toast.makeText(this, "启动内置文件选择器失败！", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
-        this.fileSelectedInterface = fileSelectedInterface
         chooseFilePath("")
         return true
     }
-}
 
     private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {

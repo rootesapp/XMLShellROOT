@@ -82,15 +82,6 @@ class FragmentPages : androidx.fragment.app.Fragment() {
                 OpenPageHelper(requireActivity()).openPage(pageNode)
             }
 
-            pay_xx.setOnClickListener {
-                val dialogWX = DialogWX(requireActivity())
-                dialogWX.showWXMenu()
-            }
-
-                pay_web.setOnClickListener {
-
-                    HTMLDialog.showHTMLDialog(context, "https://gitee.com/rootes/server/raw/master/about1.txt");
-                    }
     }
 
     }

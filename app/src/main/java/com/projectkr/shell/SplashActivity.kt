@@ -89,17 +89,10 @@ class SplashActivity : Activity() {
      */
     private fun checkPermissions() {
         start_logo.visibility = View.VISIBLE
-        checkRoot(Runnable {
-            start_state_text.text = getString(R.string.pio_permission_checking)
-            hasRoot = true
-
-            /*
-            checkFileWrite(Runnable {
-                startToFinish()
-            })
-            */
+       start_state_text.text = getString(R.string.pio_permission_checking)
+            
             startToFinish()
-        })
+        
     }
 
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this.applicationContext, permission) == PermissionChecker.PERMISSION_GRANTED

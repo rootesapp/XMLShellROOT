@@ -20,8 +20,8 @@
         <item name="android:checkboxStyle">@style/SceneCheckBox</item>
         <item name="android:radioButtonStyle">@style/SceneRadioBox</item>
     </style>
-    <style name="ListCardItemClickableLast" parent="ListCardItemClickable">
-    <style name="ListCardItemClickable" parent="ListCardItem">
+    <style name="ListCardItemClickableLast" parent="ListCardItemClickable"/>
+    <style name="ListCardItemClickable" parent="ListCardItem"/>
         
     <style name="ListCardItem">
         <item name="android:layout_marginLeft">@dimen/activity_horizontal_margin</item>

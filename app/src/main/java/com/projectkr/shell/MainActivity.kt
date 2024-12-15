@@ -179,7 +179,9 @@ class MainActivity : AppCompatActivity() {
     // Menu creation and item selection
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
+
         menu.findItem(R.id.action_graph).isVisible = (main_tabhost_cpu.visibility == View.VISIBLE)
+
         return true
     }
 
